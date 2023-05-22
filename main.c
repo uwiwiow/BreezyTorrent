@@ -4,13 +4,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-// Define MAX and MIN macros
-#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y)) el operador ? devuele el primer valor si es verdadero
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
-
 // Define screen dimensions
-#define SCREEN_WIDTH    1600
-#define SCREEN_HEIGHT   900
+#define SCREEN_WIDTH    600
+#define SCREEN_HEIGHT   600
 
 typedef struct {
     int x;
@@ -31,10 +27,10 @@ void set_true(bool* direction, bool* up, bool* down, bool* right, bool* left)
 int ran_x()
 {
     // Definir el máximo del rango deseado
-    int max_x = 80;
+    int max_x = SCREEN_WIDTH / 20;
 
     // Generar un número aleatorio dentro del rango [0, max] y multiplicarlo por 20
-    int ran_x = (rand() % (max_x + 1)) * 20;
+    int ran_x = (rand() % (max_x)) * 20;
 
     return ran_x;
 }
@@ -42,8 +38,8 @@ int ran_x()
 
 int ran_y()
 {
-    int max_y = 45;
-    int ran_y = (rand() % (max_y + 1)) * 20;
+    int max_y = SCREEN_HEIGHT / 20;
+    int ran_y = (rand() % (max_y)) * 20;
     return ran_y;
 }
 
@@ -74,7 +70,7 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    int FPS = 20;
+    int FPS = 10;
 
     const int DELAY_TIME = 1000 / FPS;
 
@@ -106,21 +102,18 @@ int main(int argc, char* argv[])
             // Declare rect of square
             SDL_Rect squareRect;
 
-            // Square dimensions: Half of the min(SCREEN_WIDTH, SCREEN_HEIGHT)
+            // Square dimensions
             squareRect.w = 20;
             squareRect.h = 20;
 
-            // Square position: In the middle of the screen
-            squareRect.x = (SCREEN_WIDTH / 2 - squareRect.w / 2) + 10;
-            squareRect.y = SCREEN_HEIGHT / 2 - squareRect.h / 2;
+            // Square position
+            squareRect.x = 0;
+            squareRect.y = 0;
 
             bool up = false;
             bool down = false;
             bool left = false;
             bool right = true;
-
-            // Event loop exit flag
-            bool quit = false;
 
             SDL_Rect foodRect;
             foodRect.w = 20;
@@ -129,7 +122,6 @@ int main(int argc, char* argv[])
             foodRect.y = ran_y();
 
             //      Cuerpo
-
             // Lista de rects
             SDL_Rect rectList[255];
             int rectCount = 0;
@@ -138,6 +130,10 @@ int main(int argc, char* argv[])
             const int MAX_POSITIONS = 255;
             Position positions[MAX_POSITIONS];
             int positionCount = 0;
+
+
+            // Event loop exit flag
+            bool quit = false;
 
             // Event loop
             while(!quit)
@@ -176,21 +172,21 @@ int main(int argc, char* argv[])
                 }
 
 
-                if (squareRect.x == 1600)
+                if (squareRect.x == SCREEN_WIDTH)
                 {
                     squareRect.x = 0;
                 }
                 if (squareRect.x == -20)
                 {
-                    squareRect.x = 1580;
+                    squareRect.x = SCREEN_WIDTH - 20;
                 }
-                if (squareRect.y == 900)
+                if (squareRect.y == SCREEN_HEIGHT)
                 {
                     squareRect.y = 0;
                 }
                 if (squareRect.y == -20)
                 {
-                    squareRect.y = 880;
+                    squareRect.y = SCREEN_HEIGHT - 20;
                 }
 
                 // Guardar la posición actual en el vector
