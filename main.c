@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    int FPS = 10;
+    int FPS = 15;
 
     const int DELAY_TIME = 1000 / FPS;
 
@@ -258,7 +258,6 @@ int main(int argc, char* argv[])
                     }
 
                 }
-                //aqui quito cosas xd
 
                 // Renderizar todos los rects del cuerpo
                 SDL_SetRenderDrawColor(renderer, 0x00, 0xAA, 0x00, 0xFF);
@@ -267,11 +266,11 @@ int main(int argc, char* argv[])
                     rectList[i].y = positions[i].y;
                     rectList[i].w = 20;
                     rectList[i].h = 20;
+                    SDL_RenderFillRect(renderer, &rectList[i]);
                     if (squareRect.x == rectList[i].x && squareRect.y == rectList[i].y)
                     {
                         quit = true;
                     }
-                    SDL_RenderFillRect(renderer, &rectList[i]);
                 }
 
                 // Update screen
