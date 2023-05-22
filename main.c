@@ -271,6 +271,10 @@ int main(int argc, char* argv[])
                     rectList[i].y = positions[i].y;
                     rectList[i].w = 20;
                     rectList[i].h = 20;
+                    if (squareRect.x == rectList[i].x && squareRect.y == rectList[i].y)
+                    {
+                        quit = true;
+                    }
                     SDL_RenderFillRect(renderer, &rectList[i]);
                 }
 
