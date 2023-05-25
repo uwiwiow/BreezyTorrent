@@ -5,8 +5,8 @@
 #include <time.h>
 
 // Define screen dimensions
-#define SCREEN_WIDTH    600
-#define SCREEN_HEIGHT   600
+#define SCREEN_WIDTH    320
+#define SCREEN_HEIGHT   320
 
 typedef struct {
     int x;
@@ -44,6 +44,38 @@ int ran_y()
 }
 
 
+void stabb(SDL_Rect *squareRect, bool x)
+{
+    if (x)
+    {
+        int num = squareRect->x;
+        num = num % 100; // obtener ultimas dos cifras
+        int pc = num / 10;
+        int sc = num % 10;
+        if (pc % 2 == 0)
+        {
+            squareRect->x = squareRect->x - sc;
+        } else
+        {
+            squareRect->x = squareRect->x + (10-sc);
+        }
+    } else
+    {
+        int num = squareRect->y;
+        num = num % 100;
+        int pc = num / 10;
+        int sc = num % 10;
+        if (pc % 2 == 0)
+        {
+            squareRect->y = squareRect->y - sc;
+        } else
+        {
+            squareRect->y = squareRect->y + (10-sc);
+        }
+    }
+}
+
+
 int main(int argc, char* argv[])
 {
     // Unused argc, argv
@@ -70,7 +102,7 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    int FPS = 15;
+    int FPS = 60;
 
     const int DELAY_TIME = 1000 / FPS;
 
@@ -151,21 +183,25 @@ int main(int argc, char* argv[])
                     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_a && right == false)
                     {
                         set_true(&left, &up, &down, &right, &left);
+                        stabb(&squareRect, false);
                         break;
                     }
                     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_d && left == false)
                     {
                         set_true(&right, &up, &down, &right, &left);
+                        stabb(&squareRect, false);
                         break;
                     }
                     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_w && down == false)
                     {
                         set_true(&up, &up, &down, &right, &left);
+                        stabb(&squareRect, true);
                         break;
                     }
                     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_s && up == false)
                     {
                         set_true(&down, &up, &down, &right, &left);
+                        stabb(&squareRect, true);
                         break;
                     }
 
@@ -174,19 +210,19 @@ int main(int argc, char* argv[])
 
                 if (squareRect.x == SCREEN_WIDTH)
                 {
-                    squareRect.x = 0;
+                    quit = true;
                 }
                 if (squareRect.x == -20)
                 {
-                    squareRect.x = SCREEN_WIDTH - 20;
+                    quit = true;
                 }
                 if (squareRect.y == SCREEN_HEIGHT)
                 {
-                    squareRect.y = 0;
+                    quit = true;
                 }
                 if (squareRect.y == -20)
                 {
-                    squareRect.y = SCREEN_HEIGHT - 20;
+                    quit = true;
                 }
 
                 // Guardar la posición actual en el vector
@@ -196,19 +232,19 @@ int main(int argc, char* argv[])
 
                 if (up)
                 {
-                    squareRect.y -= 20;
+                    squareRect.y -= 4;
                 }
                 if (down)
                 {
-                    squareRect.y += 20;
+                    squareRect.y += 4;
                 }
                 if (left)
                 {
-                    squareRect.x -= 20;
+                    squareRect.x -= 4;
                 }
                 if (right)
                 {
-                    squareRect.x += 20;
+                    squareRect.x += 4;
                 }
 
                 // Desplazar los elementos existentes hacia la derecha
@@ -250,11 +286,13 @@ int main(int argc, char* argv[])
 
                     if (rectCount < sizeof(rectList)) {
                         // Crear un nuevo rect
-                        SDL_Rect newRect;
+                        for (int i = 0; i < 5; ++i) {
+                            SDL_Rect newRect;
 
-                        // Agregar el nuevo rect a la lista
-                        rectList[rectCount] = newRect;
-                        rectCount++;
+                            // Agregar el nuevo rect a la lista
+                            rectList[rectCount] = newRect;
+                            rectCount++;
+                        }
                     }
 
                 }
@@ -267,6 +305,8 @@ int main(int argc, char* argv[])
                     rectList[i].w = 20;
                     rectList[i].h = 20;
                     SDL_RenderFillRect(renderer, &rectList[i]);
+
+                    // revisar si se transpone para terminar el juego
                     if (squareRect.x == rectList[i].x && squareRect.y == rectList[i].y)
                     {
                         quit = true;
