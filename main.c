@@ -7,6 +7,7 @@
 // Define screen dimensions
 #define SCREEN_WIDTH    320
 #define SCREEN_HEIGHT   320
+#define AVANZE          4
 
 typedef struct {
     int x;
@@ -54,7 +55,7 @@ void stabb(SDL_Rect *squareRect, bool x)
         int sc = num % 10;
         if (pc % 2 == 0)
         {
-            squareRect->x = squareRect->x - sc;
+            squareRect->x = squareRect->x -sc;
         } else
         {
             squareRect->x = squareRect->x + (10-sc);
@@ -67,7 +68,7 @@ void stabb(SDL_Rect *squareRect, bool x)
         int sc = num % 10;
         if (pc % 2 == 0)
         {
-            squareRect->y = squareRect->y - sc;
+            squareRect->y = squareRect->y -sc;
         } else
         {
             squareRect->y = squareRect->y + (10-sc);
@@ -154,15 +155,18 @@ int main(int argc, char* argv[])
             foodRect.y = ran_y();
 
             //      Cuerpo
-            // Lista de rects
-            SDL_Rect rectList[255];
-            int rectCount = 0;
 
             // Vector para almacenar las posiciones antiguas
-            const int MAX_POSITIONS = 255;
+            const int MAX_POSITIONS = (255 * (20/AVANZE));
             Position positions[MAX_POSITIONS];
             int positionCount = 0;
 
+            // Lista de rects
+            SDL_Rect rectList[MAX_POSITIONS];
+            int rectCount = 0;
+
+            //bonus inicial
+            int bonus = 2;
 
             // Event loop exit flag
             bool quit = false;
@@ -172,6 +176,8 @@ int main(int argc, char* argv[])
             {
                 frameStart = SDL_GetTicks();
                 SDL_Event e;
+
+                printf("%d,%d       %d\n",squareRect.x,squareRect.y, rectCount/5);
 
                 while (SDL_PollEvent(&e)) {
 
@@ -232,19 +238,19 @@ int main(int argc, char* argv[])
 
                 if (up)
                 {
-                    squareRect.y -= 4;
+                    squareRect.y -= AVANZE;
                 }
                 if (down)
                 {
-                    squareRect.y += 4;
+                    squareRect.y += AVANZE;
                 }
                 if (left)
                 {
-                    squareRect.x -= 4;
+                    squareRect.x -= AVANZE;
                 }
                 if (right)
                 {
-                    squareRect.x += 4;
+                    squareRect.x += AVANZE;
                 }
 
                 // Desplazar los elementos existentes hacia la derecha
@@ -275,6 +281,20 @@ int main(int argc, char* argv[])
                 // FOOD
                 SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
 
+
+                if (bonus > 0)
+                {
+                    for (int i = 0; i < (20 / AVANZE); ++i) {
+                        SDL_Rect newRect;
+
+                        // Agregar el nuevo rect a la lista
+                        rectList[rectCount] = newRect;
+                        rectCount++;
+                    }
+                }
+                bonus--;
+
+
                 if (squareRect.x != foodRect.x || squareRect.y != foodRect.y)
                 {
                     SDL_RenderFillRect(renderer, &foodRect);
@@ -286,7 +306,7 @@ int main(int argc, char* argv[])
 
                     if (rectCount < sizeof(rectList)) {
                         // Crear un nuevo rect
-                        for (int i = 0; i < 5; ++i) {
+                        for (int i = 0; i < (20 / AVANZE); ++i) {
                             SDL_Rect newRect;
 
                             // Agregar el nuevo rect a la lista
@@ -311,6 +331,26 @@ int main(int argc, char* argv[])
                     {
                         quit = true;
                     }
+
+                    // revisar si alguna parte del cuerpo se transpone con la comida
+                    if (rectList[i].x == foodRect.x && rectList[i].y == foodRect.y)
+                    {
+                        foodRect.x = ran_x();
+                        foodRect.y = ran_y();
+
+                        if (rectCount < sizeof(rectList)) {
+                            // Crear un nuevo rect
+                            for (int j = 0; j < (20 / AVANZE); ++j) {
+                                SDL_Rect newRect;
+
+                                // Agregar el nuevo rect a la lista
+                                rectList[rectCount] = newRect;
+                                rectCount++;
+                            }
+                        }
+
+                    }
+
                 }
 
                 // Update screen
