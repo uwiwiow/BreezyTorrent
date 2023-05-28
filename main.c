@@ -114,6 +114,9 @@ int main(int argc, char* argv[])
     const int DELAY_TIME = 1000 / FPS;
     const bool walldeath = false;
 
+    //bonus inicial
+    int bonus = 2;
+
     Uint32 frameStart;
     int frameTime;
 
@@ -172,9 +175,6 @@ int main(int argc, char* argv[])
             SDL_Rect rectList[MAX_POSITIONS];
             int rectCount = 0;
 
-            //bonus inicial
-            int bonus = 2;
-
             // checar si quiere sobreponerse despues de un giro
             SDL_Rect saved_rect;
 
@@ -223,7 +223,6 @@ int main(int argc, char* argv[])
                                 stabb(&squareRect, false);
                                 saved_rect = save_pos(squareRect);
                                 saved_rect.x -= 1;
-                                                            printf("saved ------------------ left\n");
                                 act_letter = 97;
                                 a_pressed = SDL_TRUE;
                                 break;
@@ -232,7 +231,6 @@ int main(int argc, char* argv[])
                                 set_true(&down, &up, &down, &right, &left);
                                 stabb(&squareRect, true);
                                 saved_rect = save_pos(squareRect);
-                                                            printf("saved ------------------ down\n");
                                 act_letter = 115;
                                 s_pressed = SDL_TRUE;
                                 break;
@@ -241,7 +239,6 @@ int main(int argc, char* argv[])
                                 set_true(&right, &up, &down, &right, &left);
                                 stabb(&squareRect, false);
                                 saved_rect = save_pos(squareRect);
-                                                            printf("saved ------------------ right\n");
                                 act_letter = 100;
                                 d_pressed = SDL_TRUE;
                                 break;
@@ -251,11 +248,21 @@ int main(int argc, char* argv[])
                                 stabb(&squareRect, true);
                                 saved_rect = save_pos(squareRect);
                                 saved_rect.y -= 1;
-                                                            printf("saved ------------------ up\n");
                                 act_letter = 119;
                                 w_pressed = SDL_TRUE;
                                 break;
                             }
+                        } else
+                        {
+                            if (act_letter != e.key.keysym.sym)
+                            {
+                                letter = e.key.keysym.sym;
+                                SDL_Event event;
+                                event.type = SDL_KEYDOWN;
+                                event.key.keysym.sym = letter;
+                                SDL_PushEvent(&event);
+                            }
+
                         }
                     }
                     else if (e.type == SDL_KEYUP) {
@@ -273,50 +280,7 @@ int main(int argc, char* argv[])
                         }
                     }
 
-
-//                    printf("%d\n",e.key.keysym.sym);
-
-//                    switch (e.key.keysym.sym) {
-//                        case 97:
-//                            printf("left    %d\n", iter);
-//                            iter ++;
-//                            break;
-//                        case 100:
-//                            printf("right   %d\n", iter);
-//                            iter ++;
-//                            break;
-//                        case 115:
-//                            printf("down    %d\n", iter);
-//                            iter ++;
-//                            break;
-//                        case 119:
-//                            printf("up  %d\n", iter);
-//                            iter ++;
-//                            break;
-//                        default:
-//                            break;
-//                    }
-
-                    if(!((saved_rect.x/20) == (squareRect.x/20) && (saved_rect.y/20) == (squareRect.y/20)))
-                    {
-                    } else
-                    {
-                        if (act_letter != e.key.keysym.sym)
-                        {
-                            letter = e.key.keysym.sym;
-                            SDL_Event event;
-                            event.type = SDL_KEYDOWN;
-                            event.key.keysym.sym = letter;
-//                            SDL_PushEvent(&event);
-                        }
-//                        printf("letter == %d\nactletter == %d\n", letter, act_letter);
-
-                    }
-
-
-
                 }
-
 
                 if (squareRect.x == SCREEN_WIDTH)
                 {
@@ -380,10 +344,6 @@ int main(int argc, char* argv[])
                 {
                     squareRect.x += AVANZE;
                 }
-
-//                printf("%d,%d\n",squareRect.x/20,squareRect.y/20);
-//                printf("%d,%d\n",saved_rect.x/20,saved_rect.y/20);
-//                printf("%d,%d       %d\n\n",squareRect.x,squareRect.y, rectCount/5);
 
                 // Desplazar los elementos existentes hacia la derecha
                 for (int i = positionCount - 1; i >= 0; i--) {
@@ -488,7 +448,7 @@ int main(int argc, char* argv[])
                 // Update screen
                 SDL_RenderPresent(renderer);
 
-                frameTime = SDL_GetTicks() - frameStart;
+                frameTime = SDL_GetTicks64() - frameStart;
 
                 // Esperar el tiempo restante hasta alcanzar el frame rate deseado
                 if (frameTime < DELAY_TIME) {
