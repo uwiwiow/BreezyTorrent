@@ -5,8 +5,8 @@
 #include <time.h>
 
 // Define screen dimensions
-#define SCREEN_WIDTH    120
-#define SCREEN_HEIGHT   120
+#define SCREEN_WIDTH    320
+#define SCREEN_HEIGHT   320
 #define AVANZE          4
 
 typedef struct {
@@ -179,12 +179,24 @@ int main(int argc, char* argv[])
             SDL_Rect saved_rect;
 
             // guardar movimiento
-            bool mov = false;
             int letter;
             int act_letter;
 
             // Event loop exit flag
             bool quit = false;
+
+            SDL_bool a_pressed = SDL_FALSE;
+            SDL_bool s_pressed = SDL_FALSE;
+            SDL_bool d_pressed = SDL_FALSE;
+            SDL_bool w_pressed = SDL_FALSE;
+
+            SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+            SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+            SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+            SDL_EventState(SDL_MOUSEWHEEL, SDL_IGNORE);
+
+            int iter = 0;
+
 
             // Event loop
             while(!quit)
@@ -203,70 +215,101 @@ int main(int argc, char* argv[])
                     {
                         quit = true;
                     }
+                    else if (e.type == SDL_KEYDOWN) {
+                        if(!((saved_rect.x/20) == (squareRect.x/20) && (saved_rect.y/20) == (squareRect.y/20))) {
+                            if (e.key.keysym.sym == SDLK_a && !a_pressed && left == false && right == false) {
+                                // 97
+                                set_true(&left, &up, &down, &right, &left);
+                                stabb(&squareRect, false);
+                                saved_rect = save_pos(squareRect);
+                                saved_rect.x -= 1;
+                                                            printf("saved ------------------ left\n");
+                                act_letter = 97;
+                                a_pressed = SDL_TRUE;
+                                break;
+                            } else if (e.key.keysym.sym == SDLK_s && !s_pressed && down == false && up == false) {
+                                //115
+                                set_true(&down, &up, &down, &right, &left);
+                                stabb(&squareRect, true);
+                                saved_rect = save_pos(squareRect);
+                                                            printf("saved ------------------ down\n");
+                                act_letter = 115;
+                                s_pressed = SDL_TRUE;
+                                break;
+                            } else if (e.key.keysym.sym == SDLK_d && !d_pressed && right == false && left == false) {
+                                // 100
+                                set_true(&right, &up, &down, &right, &left);
+                                stabb(&squareRect, false);
+                                saved_rect = save_pos(squareRect);
+                                                            printf("saved ------------------ right\n");
+                                act_letter = 100;
+                                d_pressed = SDL_TRUE;
+                                break;
+                            } else if (e.key.keysym.sym == SDLK_w && !w_pressed && up == false && down == false) {
+                                // 119
+                                set_true(&up, &up, &down, &right, &left);
+                                stabb(&squareRect, true);
+                                saved_rect = save_pos(squareRect);
+                                saved_rect.y -= 1;
+                                                            printf("saved ------------------ up\n");
+                                act_letter = 119;
+                                w_pressed = SDL_TRUE;
+                                break;
+                            }
+                        }
+                    }
+                    else if (e.type == SDL_KEYUP) {
+                        if (e.key.keysym.sym == SDLK_a) {
+                            a_pressed = SDL_FALSE;
+                        }
+                        else if (e.key.keysym.sym == SDLK_s) {
+                            s_pressed = SDL_FALSE;
+                        }
+                        else if (e.key.keysym.sym == SDLK_d) {
+                            d_pressed = SDL_FALSE;
+                        }
+                        else if (e.key.keysym.sym == SDLK_w) {
+                            w_pressed = SDL_FALSE;
+                        }
+                    }
 
-                    printf("keysys %d\n", e.key.keysym.sym);
+
+//                    printf("%d\n",e.key.keysym.sym);
+
+//                    switch (e.key.keysym.sym) {
+//                        case 97:
+//                            printf("left    %d\n", iter);
+//                            iter ++;
+//                            break;
+//                        case 100:
+//                            printf("right   %d\n", iter);
+//                            iter ++;
+//                            break;
+//                        case 115:
+//                            printf("down    %d\n", iter);
+//                            iter ++;
+//                            break;
+//                        case 119:
+//                            printf("up  %d\n", iter);
+//                            iter ++;
+//                            break;
+//                        default:
+//                            break;
+//                    }
 
                     if(!((saved_rect.x/20) == (squareRect.x/20) && (saved_rect.y/20) == (squareRect.y/20)))
                     {
-                        if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_a && left == false && right == false)
-                        {
-                            // 97
-                            set_true(&left, &up, &down, &right, &left);
-                            stabb(&squareRect, false);
-                            saved_rect = save_pos(squareRect);
-                            saved_rect.x -= 1;
-                            printf("saved ------------------ left\n");
-                            act_letter = 97;
-                            mov = false;
-                            break;
-                        }
-                        if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_d && right == false && left == false)
-                        {
-                            // 100
-                            set_true(&right, &up, &down, &right, &left);
-                            stabb(&squareRect, false);
-                            saved_rect = save_pos(squareRect);
-                            printf("saved ------------------ right\n");
-                            act_letter = 100;
-                            mov = false;
-                            break;
-                        }
-                        if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_w && up == false && down == false)
-                        {
-                            // 119
-                            set_true(&up, &up, &down, &right, &left);
-                            stabb(&squareRect, true);
-                            saved_rect = save_pos(squareRect);
-                            saved_rect.y -= 1;
-                            printf("saved ------------------ up\n");
-                            act_letter = 119;
-                            mov = false;
-                            break;
-                        }
-                        if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_s && down == false && up == false)
-                        {
-                            //115
-                            set_true(&down, &up, &down, &right, &left);
-                            stabb(&squareRect, true);
-                            saved_rect = save_pos(squareRect);
-                            printf("saved ------------------ down\n");
-                            act_letter = 115;
-                            mov = false;
-                            break;
-                        }
-
                     } else
                     {
-                        mov = true;
                         if (act_letter != e.key.keysym.sym)
                         {
                             letter = e.key.keysym.sym;
                             SDL_Event event;
                             event.type = SDL_KEYDOWN;
                             event.key.keysym.sym = letter;
-                            SDL_PushEvent(&event);
+//                            SDL_PushEvent(&event);
                         }
-                        printf("letter == %d\nactletter == %d\n", letter, act_letter);
+//                        printf("letter == %d\nactletter == %d\n", letter, act_letter);
 
                     }
 
@@ -338,9 +381,9 @@ int main(int argc, char* argv[])
                     squareRect.x += AVANZE;
                 }
 
-                printf("%d,%d\n",squareRect.x/20,squareRect.y/20);
-                printf("%d,%d\n",saved_rect.x/20,saved_rect.y/20);
-                printf("%d,%d       %d\n\n",squareRect.x,squareRect.y, rectCount/5);
+//                printf("%d,%d\n",squareRect.x/20,squareRect.y/20);
+//                printf("%d,%d\n",saved_rect.x/20,saved_rect.y/20);
+//                printf("%d,%d       %d\n\n",squareRect.x,squareRect.y, rectCount/5);
 
                 // Desplazar los elementos existentes hacia la derecha
                 for (int i = positionCount - 1; i >= 0; i--) {
