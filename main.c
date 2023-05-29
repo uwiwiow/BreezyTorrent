@@ -82,6 +82,51 @@ SDL_Rect save_pos(SDL_Rect rect)
     return rect;
 }
 
+int dist_xaxis(SDL_Rect bodyRect, SDL_Rect foodRect)
+{
+    int avanceBloq = (foodRect.x / 20) - (bodyRect.x / 20);
+
+    return avanceBloq;
+}
+
+bool for_xaxis(SDL_Rect bodyRect, SDL_Rect foodRect)
+{
+    int avanceBloq = (foodRect.x / 20) - ((bodyRect.x / 20) + 20);
+    bool ret;
+
+    //si es positivo && si es mayor que 8
+    if ((avanceBloq > 8) || (avanceBloq < 0 && avanceBloq > -8))
+    {
+        ret = true;
+    }
+    if ((avanceBloq < 8 && avanceBloq > 0) || avanceBloq < -8)
+    {
+        ret = false;
+    }
+
+    // true es abajo
+    return ret;
+}
+
+bool for_yaxis(SDL_Rect bodyRect, SDL_Rect foodRect)
+{
+    int avanceBloq = (foodRect.y / 20) - (bodyRect.y / 20);
+    bool ret;
+
+    //si es positivo && si es mayor que 8
+    if ((avanceBloq > 8) || (avanceBloq < 0 && avanceBloq > -8))
+    {
+        ret = true;
+    }
+    if ((avanceBloq < 8 && avanceBloq > 0) || avanceBloq < -8)
+    {
+        ret = false;
+    }
+
+    // true es abajo
+    return ret;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -109,13 +154,16 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    int FPS = 60;
+    int FPS = 20;
 
     const int DELAY_TIME = 1000 / FPS;
     const bool walldeath = false;
 
     //bonus inicial
     int bonus = 2;
+
+    // bot mode
+    bool bot_mode = true;
 
     Uint32 frameStart;
     int frameTime;
@@ -196,6 +244,9 @@ int main(int argc, char* argv[])
             SDL_EventState(SDL_MOUSEWHEEL, SDL_IGNORE);
 
             int iter = 0;
+            int disaxis;
+
+            SDL_Rect savedfoodRect = foodRect;
 
 
             // Event loop
@@ -204,9 +255,38 @@ int main(int argc, char* argv[])
                 frameStart = SDL_GetTicks();
                 SDL_Event e;
 
-//                printf("%d,%d\n",squareRect.x/20,squareRect.y/20);
-//                printf("%d,%d\n",saved_rect.x/20,saved_rect.y/20);
-//                printf("%d,%d       %d\n\n",squareRect.x,squareRect.y, rectCount/5);
+                if (bot_mode)
+                {
+                    disaxis = dist_xaxis(squareRect, foodRect);
+                    printf("dix     %d ----------\n",disaxis);
+                    if (disaxis != 0)
+                    {
+                        e.type = SDL_KEYDOWN;
+                        if (for_xaxis(squareRect, foodRect))
+                        {
+                            e.key.keysym.sym = SDLK_a;
+                        } else
+                        {
+                            e.key.keysym.sym = SDLK_d;
+                        }
+                        SDL_PushEvent(&e);
+                    }
+                    if (disaxis == 0){
+                        e.type = SDL_KEYDOWN;
+                        if (for_yaxis(squareRect, foodRect))
+                        {
+                            e.key.keysym.sym = SDLK_w;
+                        } else
+                        {
+                            e.key.keysym.sym = SDLK_s;
+                        }
+                        SDL_PushEvent(&e);
+                    }
+                }
+
+                printf("%d,%d\n",squareRect.x/20,squareRect.y/20);
+                printf("%d,%d\n",foodRect.x/20,foodRect.y/20);
+                printf("%d,%d       %d\n\n",squareRect.x,squareRect.y, rectCount/5);
 
                 while (SDL_PollEvent(&e)) {
 
@@ -217,6 +297,13 @@ int main(int argc, char* argv[])
                     }
                     else if (e.type == SDL_KEYDOWN) {
                         if(!((saved_rect.x/20) == (squareRect.x/20) && (saved_rect.y/20) == (squareRect.y/20))) {
+                            if (bot_mode)
+                            {
+                                a_pressed = SDL_FALSE;
+                                s_pressed = SDL_FALSE;
+                                d_pressed = SDL_FALSE;
+                                w_pressed = SDL_FALSE;
+                            }
                             if (e.key.keysym.sym == SDLK_a && !a_pressed && left == false && right == false) {
                                 // 97
                                 set_true(&left, &up, &down, &right, &left);
@@ -225,6 +312,7 @@ int main(int argc, char* argv[])
                                 saved_rect.x -= 1;
                                 act_letter = 97;
                                 a_pressed = SDL_TRUE;
+                                printf("left\n");
                                 break;
                             } else if (e.key.keysym.sym == SDLK_s && !s_pressed && down == false && up == false) {
                                 //115
@@ -233,6 +321,7 @@ int main(int argc, char* argv[])
                                 saved_rect = save_pos(squareRect);
                                 act_letter = 115;
                                 s_pressed = SDL_TRUE;
+                                printf("down\n");
                                 break;
                             } else if (e.key.keysym.sym == SDLK_d && !d_pressed && right == false && left == false) {
                                 // 100
@@ -241,6 +330,7 @@ int main(int argc, char* argv[])
                                 saved_rect = save_pos(squareRect);
                                 act_letter = 100;
                                 d_pressed = SDL_TRUE;
+                                printf("right\n");
                                 break;
                             } else if (e.key.keysym.sym == SDLK_w && !w_pressed && up == false && down == false) {
                                 // 119
@@ -250,6 +340,7 @@ int main(int argc, char* argv[])
                                 saved_rect.y -= 1;
                                 act_letter = 119;
                                 w_pressed = SDL_TRUE;
+                                printf("up\n");
                                 break;
                             }
                         } else
