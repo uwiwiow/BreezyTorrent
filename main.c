@@ -14,6 +14,7 @@ typedef struct {
     int y;
 } Position;
 
+
 void set_true(bool* direction, bool* up, bool* down, bool* right, bool* left)
 {
     *up = false;
@@ -30,6 +31,8 @@ int ran_x()
     // Definir el máximo del rango deseado
     int max_x = SCREEN_WIDTH / 20;
 
+    max_x -= 1; // error con el bot
+
     // Generar un número aleatorio dentro del rango [0, max] y multiplicarlo por 20
     int ran_x = (rand() % (max_x)) * 20;
 
@@ -42,6 +45,20 @@ int ran_y()
     int max_y = SCREEN_HEIGHT / 20;
     int ran_y = (rand() % (max_y)) * 20;
     return ran_y;
+}
+
+
+void reinit(SDL_Rect* squareRect, SDL_Rect* foodRect, int* rectCount, int* bonus)
+{
+    // Square position
+    squareRect->x = 0;
+    squareRect->y = 0;
+
+    foodRect->x = ran_x();
+    foodRect->y = ran_y();
+
+    *rectCount = 0;
+    *bonus = 2;
 }
 
 
@@ -77,6 +94,38 @@ void stabb(SDL_Rect *squareRect, bool x)
 }
 
 
+void stabbot(SDL_Rect *squareRect, bool x)
+{
+    if (x)
+    {
+        int num = squareRect->x;
+        num = num % 100; // obtener ultimas dos cifras
+        int pc = num / 10;
+        int sc = num % 10;
+        if (pc % 2 == 0)
+        {
+            squareRect->x = squareRect->x -sc;
+        } else
+        {
+            squareRect->x = squareRect->x - (10+sc);
+        }
+    } else
+    {
+        int num = squareRect->y;
+        num = num % 100;
+        int pc = num / 10;
+        int sc = num % 10;
+        if (pc % 2 == 0)
+        {
+            squareRect->y = squareRect->y -sc;
+        } else
+        {
+            squareRect->y = squareRect->y + (10-sc);
+        }
+    }
+}
+
+
 SDL_Rect save_pos(SDL_Rect rect)
 {
     return rect;
@@ -91,20 +140,20 @@ int dist_xaxis(SDL_Rect bodyRect, SDL_Rect foodRect)
 
 bool for_xaxis(SDL_Rect bodyRect, SDL_Rect foodRect)
 {
-    int avanceBloq = (foodRect.x / 20) - ((bodyRect.x / 20) + 20);
+    int avanceBloq = ((foodRect.x / 20)- 1) - ((bodyRect.x / 20));
     bool ret;
 
     //si es positivo && si es mayor que 8
-    if ((avanceBloq > 8) || (avanceBloq < 0 && avanceBloq > -8))
+    if ((avanceBloq > (SCREEN_WIDTH / 20 / 2)) || (avanceBloq < 0 && avanceBloq > -(SCREEN_WIDTH / 20 / 2)))
     {
         ret = true;
     }
-    if ((avanceBloq < 8 && avanceBloq > 0) || avanceBloq < -8)
+    if ((avanceBloq < (SCREEN_WIDTH / 20 / 2) && avanceBloq > 0) || avanceBloq < -(SCREEN_WIDTH / 20 / 2))
     {
         ret = false;
     }
 
-    // true es abajo
+    // true es izquierda
     return ret;
 }
 
@@ -114,11 +163,11 @@ bool for_yaxis(SDL_Rect bodyRect, SDL_Rect foodRect)
     bool ret;
 
     //si es positivo && si es mayor que 8
-    if ((avanceBloq > 8) || (avanceBloq < 0 && avanceBloq > -8))
+    if ((avanceBloq > (SCREEN_HEIGHT / 20 / 2)) || (avanceBloq < 0 && avanceBloq > -(SCREEN_HEIGHT / 20 / 2)))
     {
         ret = true;
     }
-    if ((avanceBloq < 8 && avanceBloq > 0) || avanceBloq < -8)
+    if ((avanceBloq < (SCREEN_HEIGHT / 20 / 2) && avanceBloq > 0) || avanceBloq < -(SCREEN_HEIGHT / 20 / 2))
     {
         ret = false;
     }
@@ -154,7 +203,7 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    int FPS = 20;
+    int FPS = 60;
 
     const int DELAY_TIME = 1000 / FPS;
     const bool walldeath = false;
@@ -163,7 +212,7 @@ int main(int argc, char* argv[])
     int bonus = 2;
 
     // bot mode
-    bool bot_mode = true;
+    bool bot_mode = false;
 
     Uint32 frameStart;
     int frameTime;
@@ -250,55 +299,53 @@ int main(int argc, char* argv[])
 
 
             // Event loop
-            while(!quit)
-            {
+            while(!quit) {
                 frameStart = SDL_GetTicks();
                 SDL_Event e;
 
-                if (bot_mode)
-                {
+                if (bot_mode) {
                     disaxis = dist_xaxis(squareRect, foodRect);
-                    printf("dix     %d ----------\n",disaxis);
-                    if (disaxis != 0)
-                    {
+                    if (disaxis != 0) {
                         e.type = SDL_KEYDOWN;
-                        if (for_xaxis(squareRect, foodRect))
-                        {
+                        if (for_xaxis(squareRect, foodRect)) {
                             e.key.keysym.sym = SDLK_a;
-                        } else
-                        {
+                        } else {
                             e.key.keysym.sym = SDLK_d;
                         }
                         SDL_PushEvent(&e);
                     }
-                    if (disaxis == 0){
+                    if (disaxis == 0) {
                         e.type = SDL_KEYDOWN;
-                        if (for_yaxis(squareRect, foodRect))
-                        {
+                        if (for_yaxis(squareRect, foodRect)) {
                             e.key.keysym.sym = SDLK_w;
-                        } else
-                        {
+                        } else {
                             e.key.keysym.sym = SDLK_s;
                         }
                         SDL_PushEvent(&e);
                     }
                 }
 
-                printf("%d,%d\n",squareRect.x/20,squareRect.y/20);
-                printf("%d,%d\n",foodRect.x/20,foodRect.y/20);
-                printf("%d,%d       %d\n\n",squareRect.x,squareRect.y, rectCount/5);
 
                 while (SDL_PollEvent(&e)) {
 
                     // User requests quit
-                    if(e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE))
-                    {
+                    if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
                         quit = true;
                     }
-                    else if (e.type == SDL_KEYDOWN) {
-                        if(!((saved_rect.x/20) == (squareRect.x/20) && (saved_rect.y/20) == (squareRect.y/20))) {
-                            if (bot_mode)
-                            {
+                    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_b) {
+                        if (bot_mode) {
+                            bot_mode = false;
+                        } else {
+                            bot_mode = true;
+                        }
+                    }
+                    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_r) {
+                        reinit(&squareRect, &foodRect, &rectCount, &bonus);
+                        set_true(&right, &up, &down, &right, &left);
+                    } else if (e.type == SDL_KEYDOWN) {
+                        if (!((saved_rect.x / 20) == (squareRect.x / 20) &&
+                              (saved_rect.y / 20) == (squareRect.y / 20))) {
+                            if (bot_mode) {
                                 a_pressed = SDL_FALSE;
                                 s_pressed = SDL_FALSE;
                                 d_pressed = SDL_FALSE;
@@ -307,46 +354,60 @@ int main(int argc, char* argv[])
                             if (e.key.keysym.sym == SDLK_a && !a_pressed && left == false && right == false) {
                                 // 97
                                 set_true(&left, &up, &down, &right, &left);
-                                stabb(&squareRect, false);
+                                if (bot_mode) {
+                                    stabbot(&squareRect, false);
+                                } else {
+                                    stabb(&squareRect, false);
+                                }
                                 saved_rect = save_pos(squareRect);
                                 saved_rect.x -= 1;
                                 act_letter = 97;
                                 a_pressed = SDL_TRUE;
-                                printf("left\n");
+//                                printf("left\n");
                                 break;
                             } else if (e.key.keysym.sym == SDLK_s && !s_pressed && down == false && up == false) {
                                 //115
                                 set_true(&down, &up, &down, &right, &left);
-                                stabb(&squareRect, true);
+                                if (bot_mode) {
+                                    stabbot(&squareRect, true);
+                                } else {
+                                    stabb(&squareRect, true);
+                                }
                                 saved_rect = save_pos(squareRect);
                                 act_letter = 115;
                                 s_pressed = SDL_TRUE;
-                                printf("down\n");
+//                                printf("down\n");
                                 break;
                             } else if (e.key.keysym.sym == SDLK_d && !d_pressed && right == false && left == false) {
                                 // 100
                                 set_true(&right, &up, &down, &right, &left);
-                                stabb(&squareRect, false);
+                                if (bot_mode) {
+                                    stabbot(&squareRect, false);
+                                } else {
+                                    stabb(&squareRect, false);
+                                }
                                 saved_rect = save_pos(squareRect);
                                 act_letter = 100;
                                 d_pressed = SDL_TRUE;
-                                printf("right\n");
+//                                printf("right\n");
                                 break;
                             } else if (e.key.keysym.sym == SDLK_w && !w_pressed && up == false && down == false) {
                                 // 119
                                 set_true(&up, &up, &down, &right, &left);
-                                stabb(&squareRect, true);
+                                if (bot_mode) {
+                                    stabbot(&squareRect, true);
+                                } else {
+                                    stabb(&squareRect, true);
+                                }
                                 saved_rect = save_pos(squareRect);
                                 saved_rect.y -= 1;
                                 act_letter = 119;
                                 w_pressed = SDL_TRUE;
-                                printf("up\n");
+//                                printf("up\n");
                                 break;
                             }
-                        } else
-                        {
-                            if (act_letter != e.key.keysym.sym)
-                            {
+                        } else {
+                            if (act_letter != e.key.keysym.sym) {
                                 letter = e.key.keysym.sym;
                                 SDL_Event event;
                                 event.type = SDL_KEYDOWN;
@@ -355,61 +416,53 @@ int main(int argc, char* argv[])
                             }
 
                         }
-                    }
-                    else if (e.type == SDL_KEYUP) {
+                    } else if (e.type == SDL_KEYUP) {
                         if (e.key.keysym.sym == SDLK_a) {
                             a_pressed = SDL_FALSE;
-                        }
-                        else if (e.key.keysym.sym == SDLK_s) {
+                        } else if (e.key.keysym.sym == SDLK_s) {
                             s_pressed = SDL_FALSE;
-                        }
-                        else if (e.key.keysym.sym == SDLK_d) {
+                        } else if (e.key.keysym.sym == SDLK_d) {
                             d_pressed = SDL_FALSE;
-                        }
-                        else if (e.key.keysym.sym == SDLK_w) {
+                        } else if (e.key.keysym.sym == SDLK_w) {
                             w_pressed = SDL_FALSE;
                         }
                     }
 
                 }
 
-                if (squareRect.x == SCREEN_WIDTH)
-                {
-                    if (walldeath)
-                    {
-                        quit = true;
-                    } else
-                    {
+                if (squareRect.x == SCREEN_WIDTH) {
+                    if (walldeath) {
+//                        quit = true;
+                        reinit(&squareRect, &foodRect, &rectCount, &bonus);
+                        set_true(&right, &up, &down, &right, &left);
+                    } else {
                         squareRect.x = 0;
                     }
                 }
-                if (squareRect.x == -20)
-                {
-                    if (walldeath)
-                    {
-                        quit = true;
-                    } else
-                    {
+                if (squareRect.x == -20) {
+                    if (walldeath) {
+//                        quit = true;
+                        reinit(&squareRect, &foodRect, &rectCount, &bonus);
+                        set_true(&right, &up, &down, &right, &left);
+                    } else {
                         squareRect.x = SCREEN_WIDTH - 20;
                     }
                 }
-                if (squareRect.y == SCREEN_HEIGHT)
-                {
-                    if (walldeath)
-                    {
-                        quit = true;
-                    } else
-                    {
+                if (squareRect.y == SCREEN_HEIGHT) {
+                    if (walldeath) {
+//                        quit = true;
+                        reinit(&squareRect, &foodRect, &rectCount, &bonus);
+                        set_true(&right, &up, &down, &right, &left);
+                    } else {
                         squareRect.y = 0;
                     }
                 }
-                if (squareRect.y == -20)
-                {
-                    if (walldeath)
-                    {
-                        quit = true;
-                    } else
-                    {
+                if (squareRect.y == -20) {
+                    if (walldeath) {
+//                        quit = true;
+                        reinit(&squareRect, &foodRect, &rectCount, &bonus);
+                        set_true(&right, &up, &down, &right, &left);
+                    } else {
                         squareRect.y = SCREEN_HEIGHT - 20;
                     }
                 }
@@ -419,20 +472,16 @@ int main(int argc, char* argv[])
                 newPosition.x = squareRect.x;
                 newPosition.y = squareRect.y;
 
-                if (up)
-                {
+                if (up) {
                     squareRect.y -= AVANZE;
                 }
-                if (down)
-                {
+                if (down) {
                     squareRect.y += AVANZE;
                 }
-                if (left)
-                {
+                if (left) {
                     squareRect.x -= AVANZE;
                 }
-                if (right)
-                {
+                if (right) {
                     squareRect.x += AVANZE;
                 }
 
@@ -457,7 +506,14 @@ int main(int argc, char* argv[])
                 SDL_RenderClear(renderer);
 
                 // Set renderer color red to draw the square
-                SDL_SetRenderDrawColor(renderer, 0x00, 0xAA, 0x00, 0xFF);
+                if (bot_mode)
+                {
+                    SDL_SetRenderDrawColor(renderer, 0xAA, 0x00, 0x00, 0xFF);
+                }
+                else
+                {
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xAA, 0x00, 0xFF);
+                }
                 // Draw filled square
                 SDL_RenderFillRect(renderer, &squareRect);
 
@@ -501,7 +557,14 @@ int main(int argc, char* argv[])
                 }
 
                 // Renderizar todos los rects del cuerpo
-                SDL_SetRenderDrawColor(renderer, 0x00, 0xAA, 0x00, 0xFF);
+                if (bot_mode)
+                {
+                    SDL_SetRenderDrawColor(renderer, 0xAA, 0x00, 0x00, 0xFF);
+                }
+                else
+                {
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xAA, 0x00, 0xFF);
+                }
                 for (int i = 0; i < rectCount; i++) {
                     rectList[i].x = positions[i].x;
                     rectList[i].y = positions[i].y;
@@ -512,7 +575,9 @@ int main(int argc, char* argv[])
                     // revisar si se transpone para terminar el juego
                     if (squareRect.x == rectList[i].x && squareRect.y == rectList[i].y)
                     {
-                        quit = true;
+//                        quit = true;
+                        reinit(&squareRect, &foodRect, &rectCount, &bonus);
+                        set_true(&right, &up, &down, &right, &left);
                     }
 
                     // revisar si alguna parte del cuerpo se transpone con la comida
