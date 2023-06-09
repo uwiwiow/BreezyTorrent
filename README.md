@@ -5,3 +5,8 @@
 
 ## Libraries
 [SDL](https://github.com/libsdl-org/SDL/releases/latest)
+
+## Controles
+
+WASD - movimiento
+B - activar/desactivar bot
