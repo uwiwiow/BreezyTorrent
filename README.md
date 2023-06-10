@@ -9,4 +9,5 @@
 ## Controles
 
 WASD - movimiento
+
 B - activar/desactivar bot
